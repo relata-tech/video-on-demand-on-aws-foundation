@@ -5,7 +5,6 @@
 const { MediaConvert } = require("@aws-sdk/client-mediaconvert");
 const { S3 } = require("@aws-sdk/client-s3");
 const { SNS } = require("@aws-sdk/client-sns");
-const fetch = require('node-fetch');
 
 /**
  * Download Job Settings from s3 and run a basic validationvalidate 
@@ -127,7 +126,7 @@ const createJob = async (job, endpoint) => {
         // console.log(`awsJobId: ${jobResponse.Job.Id}, resourceFileName: ${getFileNameFromPath(jobResponse.Job.Settings.Inputs[0].FileInput)}`);
 
         // TODO - handle dev, staging and prod environments
-        const response = await fetch('https://dev.relata.io/v1/catalog/media-jobs', {
+        await fetch('https://backend-dev.relata.io/api/v1/catalog/media-jobs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
