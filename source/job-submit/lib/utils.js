@@ -5,6 +5,7 @@
 const { MediaConvert } = require("@aws-sdk/client-mediaconvert");
 const { S3 } = require("@aws-sdk/client-s3");
 const { SNS } = require("@aws-sdk/client-sns");
+const fetch = require('node-fetch');
 
 /**
  * Download Job Settings from s3 and run a basic validationvalidate 
@@ -121,7 +122,20 @@ const createJob = async (job, endpoint) => {
         customUserAgent: process.env.SOLUTION_IDENTIFIER
     });
     try {
-        await mediaconvert.createJob(job);
+        const jobResponse = await mediaconvert.createJob(job);
+        // console.log(`job response : ${JSON.stringify(jobResponse)}`);
+        // console.log(`awsJobId: ${jobResponse.Job.Id}, resourceFileName: ${getFileNameFromPath(jobResponse.Job.Settings.Inputs[0].FileInput)}`);
+
+        // TODO - handle dev, staging and prod environments
+        const response = await fetch('https://dev.relata.io/v1/catalog/media-jobs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                awsJobId: jobResponse.Job.Id,
+                resourceFileName: getFileNameFromPath(jobResponse.Job.Settings.Inputs[0].FileInput)
+            })
+        });
+
         console.log(`job subbmited to MediaConvert:: ${JSON.stringify(job, null, 2)}`);
     } catch (err) {
         console.error(err);
@@ -158,6 +172,18 @@ const removeFileExtension = (s3Path) => {
   // Regular expression to remove the file extension, but keep the file name
   return s3Path.replace(/\.[^\/]+$/, '');
 }
+
+/**
+ * Extracts the filename from an S3 file path.
+ * 
+ * @param {string} filePath - The full S3 file path.
+ * @returns {string} - The filename extracted from the path.
+ */
+const getFileNameFromPath = (filePath) => {
+    // Use the split method to divide the path by '/' and get the last element
+    const parts = filePath.split('/');
+    return parts[parts.length - 1];
+};
 
 
 module.exports = {
