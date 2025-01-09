@@ -154,10 +154,16 @@ const sendError = async (topic,stackName,logGroupName,err) => {
     }
 };
 
+const removeFileExtension = (s3Path) => {
+  // Regular expression to remove the file extension, but keep the file name
+  return s3Path.replace(/\.[^\/]+$/, '');
+}
+
 
 module.exports = {
     getJobSettings: getJobSettings,
     updateJobSettings: updateJobSettings,
     createJob: createJob,
-    sendError: sendError
+    sendError: sendError,
+    removeFileExtension: removeFileExtension
 };
